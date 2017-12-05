@@ -20,6 +20,7 @@
  * @section DESCRIPTION
  * This is the main file of EDGE.
  **/
+#include "crop_fp16.hpp"
 
 #include "parallel/Mpi.h"
 #include "parallel/Shared.h"

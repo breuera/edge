@@ -578,6 +578,17 @@ class edge::elastic::solvers::AderDg {
           i_kernels[(ORDER-1)*(N_DIM+1)+N_DIM]( i_starM[l_el][l_dim].mat, o_tInt[l_el][0][0], l_tmp[0][0] );
 #elif defined PP_T_KERNELS_XSMM_DENSE_SINGLE
           i_kernels[((ORDER-1)*2)]( i_dg.mat.stiff[l_dim][0], o_tInt[l_el][0][0], l_tmp[0][0] );
+
+          // FP16 cropping
+          for( unsigned short l_qt = 0; l_qt < 6; l_qt++ )
+            for( unsigned short l_md = 0; l_md < N_ELEMENT_MODES; l_md++ )
+              l_tmp[l_qt][l_md][0] /= EDGE_FP16_STRESS_SCA;
+
+          edge_fp16_crop( l_tmp[0][0], N_QUANTITIES * N_ELEMENT_MODES, 1 );
+
+          for( unsigned short l_qt = 0; l_qt < 6; l_qt++ )
+            for( unsigned short l_md = 0; l_md < N_ELEMENT_MODES; l_md++ )
+              l_tmp[l_qt][l_md][0] *= EDGE_FP16_STRESS_SCA;
 #endif
 
           // multiply with star matrix
@@ -587,6 +598,16 @@ class edge::elastic::solvers::AderDg {
           i_kernels[(ORDER-1)*(N_DIM+1)+l_dim]( l_tmp[0][0], i_dg.mat.stiff[l_dim], io_dofs[l_el][0][0] );
 #elif defined PP_T_KERNELS_XSMM_DENSE_SINGLE
           i_kernels[((ORDER-1)*2)+1]( l_tmp[0][0], i_starM[l_el][l_dim].mat[0], io_dofs[l_el][0][0] );
+
+          for( unsigned short l_qt = 0; l_qt < 6; l_qt++ )
+            for( unsigned short l_md = 0; l_md < N_ELEMENT_MODES; l_md++ )
+              io_dofs[l_el][l_qt][l_md][0] /= EDGE_FP16_STRESS_SCA;
+
+          edge_fp16_crop( io_dofs[l_el][0][0], N_QUANTITIES * N_ELEMENT_MODES, 1 );
+
+          for( unsigned short l_qt = 0; l_qt < 6; l_qt++ )
+            for( unsigned short l_md = 0; l_md < N_ELEMENT_MODES; l_md++ )
+              io_dofs[l_el][l_qt][l_md][0] *= EDGE_FP16_STRESS_SCA;
 #endif
         }
 
@@ -624,6 +645,18 @@ class edge::elastic::solvers::AderDg {
             else if( l_fa == 1 ) i_kernels[((ORDER-1)*2)+2]( i_dg.mat.flux[l_fa][0], o_tInt[l_el][0][0], l_tmp[0][0],
                                                              nullptr,                l_preTint,          nullptr      );
             else                 i_kernels[((ORDER-1)*2)+3]( i_dg.mat.flux[l_fa][0], o_tInt[l_el][0][0], l_tmp[0][0]  );
+
+
+            // FP16 cropping
+            for( unsigned short l_qt = 0; l_qt < 6; l_qt++ )
+              for( unsigned short l_md = 0; l_md < N_ELEMENT_MODES; l_md++ )
+                l_tmp[l_qt][l_md][0] /= EDGE_FP16_STRESS_SCA;
+
+            edge_fp16_crop( l_tmp[0][0], N_QUANTITIES * N_ELEMENT_MODES, 1 );
+
+            for( unsigned short l_qt = 0; l_qt < 6; l_qt++ )
+              for( unsigned short l_md = 0; l_md < N_ELEMENT_MODES; l_md++ )
+                l_tmp[l_qt][l_md][0] *= EDGE_FP16_STRESS_SCA;
 #endif
 
           // multiply with flux solver
@@ -635,6 +668,17 @@ class edge::elastic::solvers::AderDg {
                                                         io_dofs[l_el][0][0] );
 #elif defined PP_T_KERNELS_XSMM_DENSE_SINGLE
             i_kernels[((ORDER-1)*2)+4]( l_tmp[0][0], i_fluxSolvers[l_el][l_fa].solver[0], io_dofs[l_el][0][0] );
+
+            // FP16 cropping
+            for( unsigned short l_qt = 0; l_qt < 6; l_qt++ )
+              for( unsigned short l_md = 0; l_md < N_ELEMENT_MODES; l_md++ )
+               io_dofs[l_el][l_qt][l_md][0] /= EDGE_FP16_STRESS_SCA;
+
+            edge_fp16_crop( io_dofs[l_el][0][0], N_QUANTITIES * N_ELEMENT_MODES, 1 );
+
+            for( unsigned short l_qt = 0; l_qt < 6; l_qt++ )
+              for( unsigned short l_md = 0; l_md < N_ELEMENT_MODES; l_md++ )
+                io_dofs[l_el][l_qt][l_md][0] *= EDGE_FP16_STRESS_SCA;
 #endif
           }
         }
@@ -963,6 +1007,18 @@ class edge::elastic::solvers::AderDg {
             i_kernels[l_fId]( i_tInt[l_ne][0][0], i_dg.mat.flux[l_fId], l_tmpProd[0][0] );
 #elif defined PP_T_KERNELS_XSMM_DENSE_SINGLE
             i_kernels[((ORDER-1)*2)+2]( i_dg.mat.flux[l_fId][0], i_tInt[l_ne][0][0], l_tmpProd[0][0], nullptr, l_pre, nullptr );
+
+
+            // FP16 croppping
+            for( unsigned short l_qt = 0; l_qt < 6; l_qt++ )
+              for( unsigned short l_md = 0; l_md < N_ELEMENT_MODES; l_md++ )
+               l_tmpProd[l_qt][l_md][0] /= EDGE_FP16_STRESS_SCA;
+
+            edge_fp16_crop( l_tmpProd[0][0], N_QUANTITIES * N_ELEMENT_MODES, 1 );
+
+            for( unsigned short l_qt = 0; l_qt < 6; l_qt++ )
+              for( unsigned short l_md = 0; l_md < N_ELEMENT_MODES; l_md++ )
+               l_tmpProd[l_qt][l_md][0] *= EDGE_FP16_STRESS_SCA;
 #endif
 
             // multiply with flux solver
@@ -972,6 +1028,18 @@ class edge::elastic::solvers::AderDg {
             i_kernels[N_FLUX_MATRICES+1]( i_fluxSolvers[l_el][l_fa].solver[0], l_tmpProd[0][0], io_dofs[l_el][0][0], nullptr, l_pre, nullptr );
 #elif defined PP_T_KERNELS_XSMM_DENSE_SINGLE
             i_kernels[((ORDER-1)*2)+4]( l_tmpProd[0][0], i_fluxSolvers[l_el][l_fa].solver[0], io_dofs[l_el][0][0] );
+
+
+            // FP16 cropping
+            for( unsigned short l_qt = 0; l_qt < 6; l_qt++ )
+              for( unsigned short l_md = 0; l_md < N_ELEMENT_MODES; l_md++ )
+              io_dofs[l_el][l_qt][l_md][0] /= EDGE_FP16_STRESS_SCA;
+
+            edge_fp16_crop( io_dofs[l_el][0][0], N_QUANTITIES * N_ELEMENT_MODES, 1 );
+
+            for( unsigned short l_qt = 0; l_qt < 6; l_qt++ )
+              for( unsigned short l_md = 0; l_md < N_ELEMENT_MODES; l_md++ )
+              io_dofs[l_el][l_qt][l_md][0] *= EDGE_FP16_STRESS_SCA;
 #endif
           }
           // apply updates of the flux computation directly if this is a rupture face

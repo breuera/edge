@@ -28,6 +28,7 @@
 
 #include "constants.hpp"
 #include "linalg/Matrix.h"
+#include "crop_fp16.hpp"
 
 namespace edge {
   namespace elastic {
@@ -272,10 +273,37 @@ class edge::elastic::solvers::TimePred {
           i_kernels[(l_de-1)*2]( i_stiffT[l_di][0],
                                  o_der[l_de-1][0][0],
                                  o_scratch[0][0] );
+
+
+          // FP16 cropping
+          for( unsigned short l_qt = 0; l_qt < 6; l_qt++ )
+            for( unsigned short l_md = 0; l_md < N_ELEMENT_MODES; l_md++ )
+              o_scratch[l_qt][l_md][0] /= EDGE_FP16_STRESS_SCA;
+
+          //edge_fp16_crop( o_scratch[0][0], TL_N_QUANTITIES * TL_N_ELEMENT_MODES, 1 );
+
+          for( unsigned short l_qt = 0; l_qt < 6; l_qt++ )
+            for( unsigned short l_md = 0; l_md < N_ELEMENT_MODES; l_md++ )
+              o_scratch[l_qt][l_md][0] *= EDGE_FP16_STRESS_SCA;
+
+
           // multiply with star matrices
           i_kernels[((l_de-1)*2)+1]( o_scratch[0][0],
                                      i_star[l_di][0],
                                      o_der[l_de][0][0] );
+
+
+          // FP16 cropping
+          for( unsigned short l_qt = 0; l_qt < 6; l_qt++ )
+            for( unsigned short l_md = 0; l_md < N_ELEMENT_MODES; l_md++ )
+              o_der[l_de][l_qt][l_md][0] /= EDGE_FP16_STRESS_SCA;
+
+          //edge_fp16_crop( o_der[l_de][0][0], TL_N_QUANTITIES * TL_N_ELEMENT_MODES, 1 );
+
+          for( unsigned short l_qt = 0; l_qt < 6; l_qt++ )
+            for( unsigned short l_md = 0; l_md < N_ELEMENT_MODES; l_md++ )
+              o_der[l_de][l_qt][l_md][0] *= EDGE_FP16_STRESS_SCA;
+
         }
 
         // update scalar
